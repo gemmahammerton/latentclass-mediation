@@ -1,0 +1,36 @@
+TITLE: Unconditional latent class model
+
+DATA:
+	FILE = sim.dat;
+
+VARIABLE:  
+    NAMES = y u1 u2 u3 u4 u5 m c;
+	USEVARIABLES = u1-u5;
+	CATEGORICAL = u1-u5;
+	CLASSES = class(4);
+	
+ANALYSIS: 
+    TYPE = MIXTURE;
+    ESTIMATOR = MLR;	
+	STARTS = 500 50;
+	PROC = 1(STARTS);
+	
+MODEL:
+	%OVERALL%
+    %class#1%
+    [u1$1*-1.6 u2$1*-1.6 u3$1*-1.6 u4$1*-1.6 u5$1*-1.6];
+
+	%class#2%
+    [u1$1*1.6 u2$1*1 u3$1*0 u4$1*-1 u5$1*-1.6];
+
+    %class#3%
+    [u1$1*-1.6 u2$1*-1 u3$1*0 u4$1*1 u5$1*1.6];
+
+    %class#4%
+    [u1$1*1.6 u2$1*1.6 u3$1*1.6 u4$1*1.6 u5$1*1.6];	
+
+OUTPUT: tech1 tech3;
+
+SAVEDATA:
+    file = bch.txt;
+	save = bch cprob;
