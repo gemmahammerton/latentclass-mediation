@@ -28,7 +28,7 @@ Code here is to perform counterfactual mediation with a latent class exposure co
 2i. Mplus input file for mediation model using updated PCD
 
 3. R file to analyse the dataset of the estimates from the simulated data
-4. 
+
 4a. R file to analyse ALSPAC dataset for the applied example
 
 4b. Mplus input file for unconditional latent class model
