@@ -1,0 +1,27 @@
+TITLE: Unconditional latent class model
+
+DATA:
+	FILE = applied.dat;
+
+VARIABLE:  
+    NAMES = aln female rs_soc cd1 cd2 cd3 cd4 cd5 cd6 cd_modclass drugs_18 int_18 qlet;
+	USEVARIABLES = cd1 cd2 cd3 cd4 cd5 cd6;
+	CATEGORICAL = cd1 cd2 cd3 cd4 cd5 cd6;
+	CLASSES = class(4);
+    Missing are all (-9999) ;
+    USEOBSERVATIONS = drugs_18 NE -9999 AND int_18 NE -9999 AND rs_soc NE -9999;  
+
+ANALYSIS: 
+    TYPE = MIXTURE;
+    ESTIMATOR = MLR;	
+	STARTS = 500 50;
+	PROC = 4(STARTS);
+	
+MODEL:
+	%OVERALL%
+
+OUTPUT: tech1 tech3;
+
+SAVEDATA:
+    file = bch.txt;
+	save = bch cprob;
