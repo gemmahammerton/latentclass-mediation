@@ -1,0 +1,205 @@
+TITLE: BCH mediation model
+
+DATA:
+	FILE = bch.dat;
+
+VARIABLE:  
+    NAMES = female rs_soc drugs_18 int_18 bch1 bch2 bch3 bch4 modal 
+    bch11 bch12 bch21 bch22 bch31 bch32 bch41 bch42;
+	USEVARIABLES = female rs_soc int_18 bch11-bch42;
+	CATEGORICAL = int_18;
+	CLASSES = cx(4) cm(2);
+    TRAINING = bch11-bch42(bch);
+	
+ANALYSIS: 
+    TYPE = MIXTURE;
+    ESTIMATOR = MLR;	
+	STARTS = 100 10;
+	PROC = 4(STARTS);
+	
+MODEL:
+	%OVERALL%
+    [cx#1]         (gamma10);
+    [cx#2]         (gamma20);
+    [cx#3]         (gamma30);
+
+    [cm#1]         (gamma01);
+    [int_18$1]          ;
+
+    cm#1 on cx#1   (gamma11);
+    cm#1 on cx#2   (gamma12);
+    cm#1 on cx#3   (gamma13);
+
+    cm#1 on female rs_soc;
+    int_18 on female rs_soc;
+
+    %cx#1.cm#1%
+    [int_18$1] (th_11);
+
+    %cx#1.cm#2%
+    [int_18$1] (th_12);
+
+    %cx#2.cm#1%
+    [int_18$1] (th_21);
+
+    %cx#2.cm#2%
+    [int_18$1] (th_22);
+
+    %cx#3.cm#1%
+    [int_18$1] (th_31);
+
+    %cx#3.cm#2%
+    [int_18$1] (th_32);
+
+    %cx#4.cm#1%
+    [int_18$1] (th_41);
+
+    %cx#4.cm#2%
+    [int_18$1] (th_42);
+
+	model constraint:
+    !effects will be conditional on confounders (males and no sociodemographic risk factors)
+    new(a1 b11 g11 b12 g12 b13 g13 g14);
+    a1 = -(th_42);
+    b11 = th_42-th_12;
+    g11 = th_12-th_11;
+    b12 = th_42-th_22;
+    g12 = th_22-th_21;
+    b13 = th_42-th_32;
+    g13 = th_32-th_31;
+    g14 = th_42-th_41;
+
+     !class 1
+      NEW(p_x1m0y0 p_x1m0y1 p_x1m1y0 p_x1m1y1);
+      p_x1m0y1 = exp(a1+b11)/(exp(a1+b11)+1);
+      p_x1m0y0 = 1/(exp(a1+b11)+1);
+      p_x1m1y1 = exp(a1+b11+g11)/(exp(a1+b11+g11)+1);
+      p_x1m1y0 = 1/(exp(a1+b11+g11)+1);
+      !class 2
+      NEW(p_x2m0y0 p_x2m0y1 p_x2m1y0 p_x2m1y1);
+      p_x2m0y1 = exp(a1+b12)/(exp(a1+b12)+1);
+      p_x2m0y0 = 1/(exp(a1+b12)+1);
+      p_x2m1y1 = exp(a1+b12+g12)/(exp(a1+b12+g12)+1);
+      p_x2m1y0 = 1/(exp(a1+b12+g12)+1);
+      !class 3
+      NEW(p_x3m0y0 p_x3m0y1 p_x3m1y0 p_x3m1y1);
+      p_x3m0y1 = exp(a1+b13)/(exp(a1+b13)+1);
+      p_x3m0y0 = 1/(exp(a1+b13)+1);
+      p_x3m1y1 = exp(a1+b13+g13)/(exp(a1+b13+g13)+1);
+      p_x3m1y0 = 1/(exp(a1+b13+g13)+1);
+      !class 4
+      NEW(p_x4m0y0 p_x4m0y1 p_x4m1y0 p_x4m1y1);
+      p_x4m0y1 = exp(a1)/(exp(a1)+1);
+      p_x4m0y0 = 1/(exp(a1)+1);
+      p_x4m1y1 = exp(a1+g14)/(exp(a1+g14)+1);
+      p_x4m1y0 = 1/(exp(a1+g14)+1);
+
+      NEW(p_x1 p_x2 p_x3 p_x4);
+      p_x1 = exp(gamma10)/(exp(gamma10) + exp(gamma20) + exp(gamma30) + 1);
+      p_x2 = exp(gamma20)/(exp(gamma10) + exp(gamma20) + exp(gamma30) + 1);
+      p_x3 = exp(gamma30)/(exp(gamma10) + exp(gamma20) + exp(gamma30) + 1);
+      p_x4 = 1/(exp(gamma10) + exp(gamma20) + exp(gamma30) + 1);
+
+      NEW(p_x1m0 p_x1m1 p_x2m0 p_x2m1 p_x3m0 p_x3m1 p_x4m0 p_x4m1);
+      p_x1m0 = 1/(exp(gamma01+gamma11) + 1);
+      p_x1m1 = exp(gamma01+gamma11)/(exp(gamma01+gamma11) + 1);
+      p_x2m0 = 1/(exp(gamma01+gamma12) + 1);
+      p_x2m1 = exp(gamma01+gamma12)/(exp(gamma01+gamma12) + 1);
+      p_x3m0 = 1/(exp(gamma01+gamma13) + 1);
+      p_x3m1 = exp(gamma01+gamma13)/(exp(gamma01+gamma13) + 1);
+      p_x4m0 = 1/(exp(gamma01) + 1);
+      p_x4m1 = exp(gamma01)/(exp(gamma01) + 1);
+
+    NEW(term00 term01 term02 term03 
+        term10 term11 term12 term13
+        term20 term21 term22 term23
+        term30 term31 term32 term33);
+
+    !these are summed across mediator
+    !probability that outcome=1 if exposure="class 4" and mediator obtains value that it would if exposure="class 4"
+    term00 = p_x4m0y1*p_x4m0 + p_x4m1y1*p_x4m1;
+    !probability that outcome=1 if exposure="class 4" and mediator obtains value that it would if exposure="class 3"
+    term01 = p_x4m0y1*p_x3m0 + p_x4m1y1*p_x3m1;
+    !probability that outcome=1 if exposure="class 4" and mediator obtains value that it would if exposure="class 2"
+    term02 = p_x4m0y1*p_x2m0 + p_x4m1y1*p_x2m1;
+    !probability that outcome=1 if exposure="class 4" and mediator obtains value that it would if exposure="class 1"
+    term03 = p_x4m0y1*p_x1m0 + p_x4m1y1*p_x1m1;
+   
+    !probability that outcome=1 if exposure="class 3" and mediator obtains value that it would if exposure="class 4"
+    term10 = p_x3m0y1*p_x4m0 + p_x3m1y1*p_x4m1;
+    !probability that outcome=1 if exposure="class 3" and mediator obtains value that it would if exposure="class 3"
+    term11 = p_x3m0y1*p_x3m0 + p_x3m1y1*p_x3m1;
+    !probability that outcome=1 if exposure="class 3" and mediator obtains value that it would if exposure="class 2"
+    term12 = p_x3m0y1*p_x2m0 + p_x3m1y1*p_x2m1;
+    !probability that outcome=1 if exposure="class 3" and mediator obtains value that it would if exposure="class 1"
+    term13 = p_x3m0y1*p_x1m0 + p_x3m1y1*p_x1m1;
+   
+    !probability that outcome=1 if exposure="class 2" and mediator obtains value that it would if exposure="class 4"
+    term20 = p_x2m0y1*p_x4m0 + p_x2m1y1*p_x4m1;
+    !probability that outcome=1 if exposure="class 2" and mediator obtains value that it would if exposure="class 3"
+    term21 = p_x2m0y1*p_x3m0 + p_x2m1y1*p_x3m1;
+    !probability that outcome=1 if exposure="class 2" and mediator obtains value that it would if exposure="class 2"
+    term22 = p_x2m0y1*p_x2m0 + p_x2m1y1*p_x2m1;
+    !probability that outcome=1 if exposure="class 2" and mediator obtains value that it would if exposure="class 1"
+    term23 = p_x2m0y1*p_x1m0 + p_x2m1y1*p_x1m1;
+   
+    !probability that outcome=1 if exposure="class 1" and mediator obtains value that it would if exposure="class 4"
+    term30 = p_x1m0y1*p_x4m0 + p_x1m1y1*p_x4m1;
+    !probability that outcome=1 if exposure="class 1" and mediator obtains value that it would if exposure="class 3"
+    term31 = p_x1m0y1*p_x3m0 + p_x1m1y1*p_x3m1;
+    !probability that outcome=1 if exposure="class 1" and mediator obtains value that it would if exposure="class 2"
+    term32 = p_x1m0y1*p_x2m0 + p_x1m1y1*p_x2m1;
+    !probability that outcome=1 if exposure="class 1" and mediator obtains value that it would if exposure="class 1"
+    term33 = p_x1m0y1*p_x1m0 + p_x1m1y1*p_x1m1;
+
+    !deriving mediation effects for every possible reference class due to class switching
+    NEW(tot_1v4 tot_1v3 tot_1v2 
+        tot_2v4 tot_2v3 tot_2v1
+        tot_3v4 tot_3v2 tot_3v1
+        tot_4v3 tot_4v2 tot_4v1);
+    tot_1v4 = ln(term33/term00);
+    tot_1v3 = ln(term33/term11);
+    tot_1v2 = ln(term33/term22);       
+    tot_2v4 = ln(term22/term00);
+    tot_2v3 = ln(term22/term11);
+    tot_2v1 = ln(term22/term33);        
+    tot_3v4 = ln(term11/term00);
+    tot_3v2 = ln(term11/term22);
+    tot_3v1 = ln(term11/term33);
+    tot_4v3 = ln(term00/term11);
+    tot_4v2 = ln(term00/term22);
+    tot_4v1 = ln(term00/term33);
+
+    NEW(tie_1v4 tie_1v3 tie_1v2
+        tie_2v4 tie_2v3 tie_2v1
+        tie_3v4 tie_3v2 tie_3v1
+        tie_4v3 tie_4v2 tie_4v1);
+    tie_1v4 = ln(term33/term30);
+    tie_1v3 = ln(term33/term31);
+    tie_1v2 = ln(term33/term32);
+    tie_2v4 = ln(term22/term20);
+    tie_2v3 = ln(term22/term21);
+    tie_2v1 = ln(term22/term23);
+    tie_3v4 = ln(term11/term10);    
+    tie_3v2 = ln(term11/term12);     
+    tie_3v1 = ln(term11/term13);
+    tie_4v3 = ln(term00/term01);
+    tie_4v2 = ln(term00/term02);
+    tie_4v1 = ln(term00/term03);
+
+    NEW(pde_1v4 pde_1v3 pde_1v2 
+        pde_2v4 pde_2v3 pde_2v1
+        pde_3v4 pde_3v2 pde_3v1
+        pde_4v3 pde_4v2 pde_4v1);
+    pde_1v4 = ln(term30/term00);
+    pde_1v3 = ln(term31/term11);
+    pde_1v2 = ln(term32/term22);
+    pde_2v4 = ln(term20/term00);
+    pde_2v3 = ln(term21/term11);
+    pde_2v1 = ln(term23/term33);
+    pde_3v4 = ln(term10/term00);
+    pde_3v2 = ln(term12/term22);
+    pde_3v1 = ln(term13/term33);
+    pde_4v3 = ln(term01/term11);
+    pde_4v2 = ln(term02/term22);
+    pde_4v1 = ln(term03/term33);
