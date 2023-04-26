@@ -1,0 +1,86 @@
+  TITLE:
+  Analysis model uses nominal (latent class) X, binary M, binary Y
+  Simulating binary X, nominal M and binary Y
+  Simulating XM interaction effect ON Y by class-varying Y ON X
+
+  Step 1: Saving the data for external Monte Carlo analysis
+
+
+  MONTECARLO:
+      NAMES = y x u1-u5;
+      CATEGORICAL = y u1-u5;
+      generate y(1 l) u1-u5(1);
+      GENCLASSES = c(4);
+      CLASSES = c(4);
+      NOBSERVATION = 5000;
+      SEED = 3454367;
+      NREPS = 500;
+      REPSAVE = ALL;
+      SAVE = sim*.dat;
+      CUTPOINTS = x(0.841621234); ! 20% exposed
+
+  MODEL POPULATION:
+      %OVERALL%
+      x@1;  ! this is required to render x as a 20% exposure
+
+      [c#1*-2.3843] ;
+      [c#2*-2.1989] ;
+      [c#3*-1.8194] ;
+
+      c#1 ON x*0.9062;
+      c#2 ON x*1.0181;
+      c#3 ON x*0.3021;
+
+      y ON x*0.553531204;
+
+      %c#1%
+      [u1$1*-2.6 u2$1*-2.6 u3$1*-2.6 u4$1*-2.6 u5$1*-2.6];
+      [y$1*0.2231];
+      y ON x*0.6931;
+      %c#2%
+      [u1$1*2.6 u2$1*2.6 u3$1*0 u4$1*-2.6 u5$1*-2.6];
+      [y$1*0.4700];
+      y ON x*0.7577;
+      %c#3%
+      [u1$1*-2.6 u2$1*-2.6 u3$1*0 u4$1*2.6 u5$1*2.6];
+      [y$1*0.4940];
+      y ON x*0.4140;
+      %c#4%
+      [u1$1*2.6 u2$1*2.6 u3$1*2.6 u4$1*2.6 u5$1*2.6];
+      [y$1*0.6880];
+      y ON x*0.4055;
+
+
+  ANALYSIS:
+      TYPE = MIXTURE;
+      ESTIMATOR = MLR;
+      PROC = 4 (STARTS);
+
+  MODEL:
+      %OVERALL%
+      [c#1*-2.3843] ;
+      [c#2*-2.1989] ;
+      [c#3*-1.8194] ;
+
+      c#1 ON x*0.9062;
+      c#2 ON x*1.0181;
+      c#3 ON x*0.3021;
+
+      y ON x*0.553531204;
+
+      %c#1%
+      [u1$1*-2.6 u2$1*-2.6 u3$1*-2.6 u4$1*-2.6 u5$1*-2.6];
+      [y$1*0.2231];
+      y ON x*0.6931;
+      %c#2%
+      [u1$1*2.6 u2$1*2.6 u3$1*0 u4$1*-2.6 u5$1*-2.6];
+      [y$1*0.4700];
+      y ON x*0.7577;
+      %c#3%
+      [u1$1*-2.6 u2$1*-2.6 u3$1*0 u4$1*2.6 u5$1*2.6];
+      [y$1*0.4940];
+      y ON x*0.4140;
+      %c#4%
+      [u1$1*2.6 u2$1*2.6 u3$1*2.6 u4$1*2.6 u5$1*2.6];
+      [y$1*0.6880];
+      y ON x*0.4055;
