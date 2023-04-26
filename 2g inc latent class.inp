@@ -1,0 +1,62 @@
+TITLE: Inclusive PCD latent class model
+
+DATA:
+	FILE = sim.dat;
+
+VARIABLE:  
+    NAMES = y u1 u2 u3 u4 u5 m c;
+	USEVARIABLES = y u1-u5 m;
+	CATEGORICAL = u1-u5;
+	CLASSES = class(4);
+	
+ANALYSIS: 
+    TYPE = MIXTURE;
+    ESTIMATOR = MLR;	
+	STARTS = 500 50;
+	PROC = 1(STARTS);
+	
+MODEL:
+	%OVERALL%
+    class#1 on m y;
+    class#2 on m y;
+    class#3 on m y;
+
+    %class#1%
+    [u1$1*-1.6 u2$1*-1.6 u3$1*-1.6 u4$1*-1.6 u5$1*-1.6] (c11-c15);
+
+	%class#2%
+    [u1$1*1.6 u2$1*1 u3$1*0 u4$1*-1 u5$1*-1.6] (c21-c25);
+
+    %class#3%
+    [u1$1*-1.6 u2$1*-1 u3$1*0 u4$1*1 u5$1*1.6] (c31-c35);
+
+    %class#4%
+    [u1$1*1.6 u2$1*1.6 u3$1*1.6 u4$1*1.6 u5$1*1.6] (c41-c45);	
+
+	model constraint:
+    !deriving AUC to work out class order
+    NEW(auc1 auc2 auc3 auc4);
+    auc1 = exp(-c11)/(1+exp(-c11))
+        + 2*exp(-c12)/(1+exp(-c12))
+        + 3*exp(-c13)/(1+exp(-c13))
+        + 4*exp(-c14)/(1+exp(-c14))
+        + 5*exp(-c15)/(1+exp(-c15));
+    auc2 = exp(-c21)/(1+exp(-c21))
+        + 2*exp(-c22)/(1+exp(-c22))
+        + 3*exp(-c23)/(1+exp(-c23))
+        + 4*exp(-c24)/(1+exp(-c24))
+        + 5*exp(-c25)/(1+exp(-c25));
+    auc3 = exp(-c31)/(1+exp(-c31))
+        + 2*exp(-c32)/(1+exp(-c32))
+        + 3*exp(-c33)/(1+exp(-c33))
+        + 4*exp(-c34)/(1+exp(-c34))
+        + 5*exp(-c35)/(1+exp(-c35));
+    auc4 = exp(-c41)/(1+exp(-c41))
+        + 2*exp(-c42)/(1+exp(-c42))
+        + 3*exp(-c43)/(1+exp(-c43))
+        + 4*exp(-c44)/(1+exp(-c44))
+        + 5*exp(-c45)/(1+exp(-c45));
+
+SAVEDATA:
+    file = inc.txt;
+	save = cprob;
