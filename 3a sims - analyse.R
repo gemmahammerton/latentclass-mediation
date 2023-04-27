@@ -1,5 +1,5 @@
 #R script for analysing simulation results
-#script based on simulation training course (Tim Morris) and vignettes for rsimsum
+#script uses vignettes for rsimsum
 
 #this script needs to be run after "2a sims.R"
 #############################################################
@@ -126,8 +126,6 @@ table(pcd.poor$exclude,onestep.poor$exclude)
 ######################################################
 
 #create dataframes for each estimand
-#these need 500(sims)*3(dgm)*5(method) rows = 7,500 and 5 columns
-
 dgm <- 3
 method <- 6
 
