@@ -11,7 +11,7 @@
 #"2f npcd mediation.inp"
 #"2g inc latent class.inp"
 #"2h incpcd mediation.inp"
-#"2i upcd mediation.inp"
+#"2i pcd mediation.inp"
 
 #using Mplus v8.8 (display order of results in Mplus output files can depend on version)
 
